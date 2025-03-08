@@ -18,7 +18,7 @@ function App() {
         </Route>
         {/* private route */}
         <Route element={<RootLayout/>}>
-        <Route index element={<Home />} />
+        <Route path="/" element={<Home />} />
         <Route path="/explore" element={<Explore/>}/>
         <Route path="/saved" element={<Saved/>}/>
         <Route path="/create-post" element={<CreatePost/>}/>

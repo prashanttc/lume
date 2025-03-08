@@ -1,5 +1,4 @@
 import { sidebarLinks } from "@/constants";
-import { useUserContext } from "@/context/AuthContext";
 import { INavLink } from "@/types";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";

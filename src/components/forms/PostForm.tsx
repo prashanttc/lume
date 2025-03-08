@@ -18,15 +18,20 @@ import { Models } from "appwrite";
 import { useUserContext } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { useCreatePost } from "@/lib/react-query/QueryAndMutations";
+import {
+  useCreatePost,
+  useUpdatePost,
+} from "@/lib/react-query/QueryAndMutations";
 import Loader from "../ui/Loader";
 
 type PostProps = {
   post?: Models.Document;
+  type: "Update" | "Create";
 };
-const PostForm = ({ post }: PostProps) => {
+const PostForm = ({ post, type }: PostProps) => {
   const navigate = useNavigate();
   const { mutateAsync: createPost, isPending: isCreating } = useCreatePost();
+  const { mutateAsync: updatePost, isPending: isUpdating } = useUpdatePost();
   const { user } = useUserContext();
   const form = useForm<z.infer<typeof PostValidation>>({
     resolver: zodResolver(PostValidation),
@@ -39,15 +44,27 @@ const PostForm = ({ post }: PostProps) => {
   });
 
   async function onSubmit(values: z.infer<typeof PostValidation>) {
-    const newPost = await createPost({
-      ...values,
-      userId: user.id,
-    });
-    if (!newPost) {
-      toast.error("post creation failed.please try again.");
-      return;
+    if (post && type === "Update") {
+      const Post = await updatePost({
+        ...values,
+        postId: post.$id,
+        imageId: post?.imageId,
+        imageUrl: post?.imageUrl,
+      });
+      if (!Post) return toast.error("error updating post.");
+      toast.success("post updated successfully.");
+      navigate("/");
+    } else {
+      const newPost = await createPost({
+        ...values,
+        userId: user.id,
+      });
+      if (!newPost) {
+        toast.error("post creation failed.please try again.");
+        return;
+      }
+      navigate("/");
     }
-    navigate("/");
   }
   return (
     <Form {...form}>
@@ -124,7 +141,7 @@ const PostForm = ({ post }: PostProps) => {
             type="submit"
             className="shad-button_primary whitespace-nowrap"
           >
-            {isCreating ? (
+            {isCreating || isUpdating? (
               <div className="flex-center gap-2">
                 <Loader />
                 Loading...

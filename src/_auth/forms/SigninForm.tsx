@@ -15,14 +15,26 @@ import { Signinvalidation } from "@/lib/validation";
 import Loader from "@/components/ui/Loader";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import {  useSignInAccount} from "@/lib/react-query/QueryAndMutations";
+import { useSignInAccount } from "@/lib/react-query/QueryAndMutations";
 import { useUserContext } from "@/context/AuthContext";
+import { sendPasswordReset } from "@/lib/appwrite/api";
+import {
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogContent,
+  AlertDialogTrigger,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 const SigninForm = () => {
   const navigate = useNavigate();
   const { checkAuthUser } = useUserContext();
-  const { mutateAsync: signInAccount , isPending:isLogging } = useSignInAccount();
-
+  const { mutateAsync: signInAccount, isPending: isLogging } =
+    useSignInAccount();
   const form = useForm<z.infer<typeof Signinvalidation>>({
     resolver: zodResolver(Signinvalidation),
     defaultValues: {
@@ -30,13 +42,16 @@ const SigninForm = () => {
       email: "",
     },
   });
+  const [passwordEmail, setPasswordEmail] = useState("");
 
   async function onSubmit(values: z.infer<typeof Signinvalidation>) {
     const session = await signInAccount({
       email: values.email,
       password: values.password,
     });
-    if (!session) return toast.error("sign up failed.please try again");
+    if (!session.success) {
+      return toast.error(session.message);
+    }
     const isLoggedIn = await checkAuthUser();
     if (isLoggedIn) {
       form.reset();
@@ -66,7 +81,7 @@ const SigninForm = () => {
                 <FormControl>
                   <Input type="email" className="shad-input" {...field} />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-red" />
               </FormItem>
             )}
           />
@@ -79,7 +94,7 @@ const SigninForm = () => {
                 <FormControl>
                   <Input type="password" className="shad-input" {...field} />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-red" />
               </FormItem>
             )}
           />
@@ -97,16 +112,50 @@ const SigninForm = () => {
               "Sign-In"
             )}
           </Button>
-          <p className="text-small-regular text-light-2 text-center m-2">
-            don't have an account?
-            <Link
-              className="text-primary-500 text-small-semibold ml-1"
-              to="/signUp"
-            >
-              Sign Up
-            </Link>
-          </p>
         </form>
+        <AlertDialog>
+          <AlertDialogTrigger className="text-red underline text-sm mt-5">
+            reset password
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>enter your email</AlertDialogTitle>
+            </AlertDialogHeader>
+            <Input
+              className="shad-input"
+              placeholder="email"
+              value={passwordEmail}
+              onChange={(e) => setPasswordEmail(e.target.value)}
+            />
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => sendPasswordReset(passwordEmail)}
+              ></AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+        {/* <p className="mt-5 font-semibold">or</p>   */}
+        {/* <Button
+          onClick={()=>signInWithGoogle()}
+          className="w-full bg-white/10 mt-5 py-6 flex items-center justify-center"
+        >          <img
+            src="/assets/icons/google.png"
+            className="w-25 h-20"
+            alt="google"
+          />
+        </Button> */}
+        <div className="flex items-center justify-center mt-1">
+          <p className="text-sm text-light-2 text-center m-2">
+            don't have an account?
+          </p>
+          <Link
+            className="text-primary-500 text-small-semibold ml-1"
+            to="/signUp"
+          >
+            Sign Up
+          </Link>
+        </div>
       </div>
     </Form>
   );

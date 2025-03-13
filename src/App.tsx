@@ -1,6 +1,7 @@
 import AuthLayout from "./_auth/AuthLayout";
 import SigninForm from "./_auth/forms/SigninForm";
 import SignupForm from "./_auth/forms/SignupForm";
+import PasswordReset from "./_auth/PasswordReset";
 import { AllUsers, CreatePost, EditPost, Explore, Home, PostDetails, Profile, Saved, UpdateProfile } from "./_root/pages";
 import RootLayout from "./_root/RootLayout";
 import "./global.css";
@@ -14,6 +15,7 @@ function App() {
         {/* public routes */}
         <Route element={<AuthLayout/>}>
         <Route path="/signIn" element={<SigninForm />} />
+        <Route path="/reset-password" element={<PasswordReset />} />
         <Route path="/signUp" element={<SignupForm />} />
         </Route>
         {/* private route */}
@@ -29,7 +31,7 @@ function App() {
         <Route path="/update-profile/:id" element={<UpdateProfile/>}/>
         </Route>
       </Routes>
-      <Toaster/>
+      <Toaster visibleToasts={1} richColors={true}/>
     </main>
   );
 }

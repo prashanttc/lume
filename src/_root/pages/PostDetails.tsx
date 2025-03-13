@@ -10,7 +10,6 @@ const PostDetails = () => {
   const navigate = useNavigate();
   const { data: post, isPending: isloading } = useGetPostById(postId!);
   const [, setOpen] = useState(true);
-console.log("post",post)
   if (!post || isloading) {
     return <Loader />;
   }
@@ -21,15 +20,15 @@ console.log("post",post)
   };
 
   return (
-    <div className=" h-full w-full absolute left-0 bg-black/60 flex sm:pt-0 sm:items-center pt-32 justify-center">
+    <div className="h-full w-full absolute left-0 bg-black/60 flex sm:pt-0 sm:items-center pt-32 justify-center">
       <div
-        className="absolute top-5 right-5 cursor-pointer  z-[99]"
+        className="absolute top-20 right-5 cursor-pointer  z-[99]"
         onClick={handleBack}
       >
         <img
           src="/assets/icons/back.svg"
           alt="back"
-          className="invert-white h-8 w-8"
+          className="invert-white hidden md:flex h-8 w-8"
         />
       </div>
 <div className="w-full flex justify-center ">

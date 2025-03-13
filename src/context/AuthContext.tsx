@@ -53,12 +53,18 @@ const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    if (
-      localStorage.getItem("cookieFallback") === "[]"|| !localStorage.getItem("cookieFallback"))
-      navigate("/signIn");
-    checkAuthUser();
-  }, []);
+    const publicRoutes = ["/signIn", "/signUp", "/reset-password"]; // Add reset password route here
 
+    const isPublicRoute = publicRoutes.includes(location.pathname);
+
+    const cookieFallback = localStorage.getItem("cookieFallback");
+
+    if (!cookieFallback || cookieFallback === "[]") {
+      if (!isPublicRoute) navigate("/signIn");
+    } else {
+      checkAuthUser();
+    }
+  }, [location.pathname]);
   const value = {
     user,
     setUser,

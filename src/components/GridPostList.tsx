@@ -6,12 +6,12 @@ type postsProps = {
 };
 const GridPostList = ({ posts }: postsProps) => {
   return (
-    <div className=" h-screen w-full">
-      <div className="w-full h-full grid grid-cols-3 gap-1  ">
+    <div className=" w-full">
+      <div className="w-full grid grid-cols-3 gap-1  ">
         {posts.map((post) => (
-          <div className="cursor-pointer">
+          <div className="cursor-pointer" key={post.$id}>
             <Link to={`/posts/${post.$id}`}>
-              <img src={post.imageUrl} alt="post" className="" />
+              <img src={post.imageUrl} alt="post" className=" w-full object-cover h-full" />
             </Link>
           </div>
         ))}

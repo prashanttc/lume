@@ -8,7 +8,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
+  FormMessage ,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Signupvalidation } from "@/lib/validation";
@@ -20,7 +20,7 @@ import {
   useSignInAccount,
 } from "@/lib/react-query/QueryAndMutations";
 import { useUserContext } from "@/context/AuthContext";
-
+  
 const SignupForm = () => {
   const navigate = useNavigate();
   const { checkAuthUser } = useUserContext();
@@ -39,8 +39,15 @@ const SignupForm = () => {
   });
 
   async function onSubmit(values: z.infer<typeof Signupvalidation>) {
-    const newUser = await createUserAccount(values);
-    if (!newUser) return toast.error("sign up failed,please try again.");
+    const response = await createUserAccount(values);
+    if (!response.success) {
+      toast.error(response.message);
+      form.setError("email", {
+        type: "manual",
+        message: response.message,
+      });
+      return;
+    }
     const session = await signInAccount({
       email: values.email,
       password: values.password,
@@ -75,7 +82,7 @@ const SignupForm = () => {
                 <FormControl>
                   <Input type="text" className="shad-input" {...field} />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className='text-red' />
               </FormItem>
             )}
           />
@@ -101,7 +108,7 @@ const SignupForm = () => {
                 <FormControl>
                   <Input type="email" className="shad-input" {...field} />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className='text-red' />
               </FormItem>
             )}
           />
@@ -114,7 +121,7 @@ const SignupForm = () => {
                 <FormControl>
                   <Input type="password" className="shad-input" {...field} />
                 </FormControl>
-                <FormMessage />
+                <FormMessage className='text-red' />
               </FormItem>
             )}
           />

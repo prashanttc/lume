@@ -20,7 +20,7 @@ const PostStat = ({ post, userId }: PostStatProps) => {
     useDeleteSavedPost();
   const likedList = post.likes.map((user: Models.Document) => user.$id);
   const { data: currentUser } = useGetCurrentUser();
-  const savedRecord = currentUser?.save.find(
+  const savedRecord = ( currentUser?.save||[]).find(
     (record: Models.Document) => record.post.$id === post.$id
   );
   const firstUserId = likedList.length > 0 ? likedList[0] : null;

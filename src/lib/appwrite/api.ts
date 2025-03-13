@@ -1,4 +1,5 @@
-import { INewPost, INewUser, IUpdatePost } from "@/types";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { INewPost, INewUser, IUpdatePost, IUpdateUser } from "@/types";
 import { account, appwriteConfig, avatars, databases, storage } from "./config";
 import { ID, Query } from "appwrite";
 
@@ -20,13 +21,15 @@ export async function createUserAccount(user: INewUser) {
       username: user.username,
       imageUrl: avatarUrl,
     });
-    return newUser;
-  } catch (error) {
-    console.error(error);
-    return error;
+    return { success: true, data: newUser };
+  } catch (error: any) {
+    console.error("Error creating user:", error);
+    return {
+      success: false,
+      message: error.message || "Failed to create user account",
+    };
   }
 }
-
 export const saveUserToDB = async (user: {
   accountId: string;
   email: string;
@@ -46,22 +49,69 @@ export const saveUserToDB = async (user: {
     console.log(error);
   }
 };
-
 export const signInAccount = async (user: {
   email: string;
   password: string;
 }) => {
   try {
+    const existingUser = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      [Query.equal("email", user.email)]
+    );
+    if (existingUser.documents.length === 0) {
+      return {
+        success: false,
+        message: "user doesn't exists.please register first.",
+      };
+    }
     const session = await account.createEmailPasswordSession(
       user.email,
       user.password
     );
-    return session;
-  } catch (error) {
+    return { success: true, data: session };
+  } catch (error: any) {
     console.log(error);
+    return {
+      success: false,
+      message: error.message || "error creating session",
+    };
   }
 };
+// export async function signInWithGoogle(){
+//      account.createOAuth2Session(
+//       "google" as OAuthProvider,
+//       "http://localhost:5173/",
+//       "http://localhost:5173/signIn"
+//     );
+// };
 
+export const sendPasswordReset = async (email: string) => {
+  try {
+    await account.createRecovery(email, "http://localhost:5173/reset-password");
+    alert("Check your email for the reset link!");
+  } catch (error: any) {
+    console.error("Error sending reset email:", error.message);
+  }
+};
+export const updatePassword = async ({
+  password,
+  userId,
+  secret,
+}: {
+  password: string;
+  userId: string;
+  secret: string;
+}) => {
+  try {
+    await account.updateRecovery(userId, secret, password);
+    alert("Password reset successful!");
+    return { success: true };
+  } catch (error: any) {
+    console.log("error", error.message);
+    return { success: false };
+  }
+};
 export const getCurrentUser = async () => {
   try {
     const currentAccount = await account.get();
@@ -77,7 +127,6 @@ export const getCurrentUser = async () => {
     console.log(error);
   }
 };
-
 export const signOutAccount = async () => {
   try {
     const session = await account.deleteSession("current");
@@ -86,7 +135,6 @@ export const signOutAccount = async () => {
     console.log(error);
   }
 };
-
 export const getUserById = async (id: string) => {
   try {
     const user = await databases.getDocument(
@@ -213,7 +261,6 @@ export const FetchInfinitePost = async ({ pageParam = 0 }) => {
     console.log(error);
   }
 };
-
 export const UploadFile = async (file: File) => {
   try {
     const uploadedFile = await storage.createFile(
@@ -226,7 +273,18 @@ export const UploadFile = async (file: File) => {
     console.log(error);
   }
 };
-
+export const UploadAvatar = async (file: File) => {
+  try {
+    const uploadedFile = await storage.createFile(
+      appwriteConfig.avatarStorageId,
+      ID.unique(),
+      file
+    );
+    return uploadedFile;
+  } catch (error) {
+    console.log(error);
+  }
+};
 export const getFilePreview = (fileId: string) => {
   try {
     const fileUrl = storage.getFilePreview(
@@ -242,7 +300,21 @@ export const getFilePreview = (fileId: string) => {
     console.log(error);
   }
 };
-
+export const getAvatarPreview = (fileId: string) => {
+  try {
+    const fileUrl = storage.getFilePreview(
+      appwriteConfig.avatarStorageId,
+      fileId,
+      2000,
+      2000,
+      undefined,
+      100
+    );
+    return fileUrl;
+  } catch (error) {
+    console.log(error);
+  }
+};
 export const deleteFile = async (fileId: string) => {
   try {
     await storage.deleteFile(appwriteConfig.storageId, fileId);
@@ -251,7 +323,14 @@ export const deleteFile = async (fileId: string) => {
     console.log(error);
   }
 };
-
+export const deleteAvatar = async (fileId: string) => {
+  try {
+    await storage.deleteFile(appwriteConfig.avatarStorageId, fileId);
+    return { status: "ok" };
+  } catch (error) {
+    console.log(error);
+  }
+};
 export const getRecentPost = async () => {
   try {
     const posts = await databases.listDocuments(
@@ -265,7 +344,6 @@ export const getRecentPost = async () => {
     console.log(error);
   }
 };
-
 export const likedPost = async (postId: string, likedArray: string[]) => {
   try {
     const updatePost = await databases.updateDocument(
@@ -312,7 +390,6 @@ export const deleteSavedPost = async (savedRecordId: string) => {
     console.log(error);
   }
 };
-
 export const getPostById = async (id: string) => {
   try {
     const post = await databases.getDocument(
@@ -326,3 +403,183 @@ export const getPostById = async (id: string) => {
     console.log(error);
   }
 };
+export const GetSearchPost = async (searchText: string) => {
+  try {
+    const result = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.postCollectionId,
+      [Query.contains("caption", searchText)]
+    );
+
+    if (!result || result.documents.length === 0) {
+      throw new Error("No results found");
+    }
+
+    return result.documents;
+  } catch (error: any) {
+    console.error("Search error:", error);
+    throw new Error(error.message || "Failed to search");
+  }
+};
+export const GetSearchUser = async (searchText: string) => {
+  try {
+    const result = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      [Query.contains("username", searchText)]
+    );
+    if (!result || result.documents.length === 0) {
+      throw new Error("No results found");
+    }
+
+    return result.documents;
+  } catch (error: any) {
+    console.error("Search error:", error);
+    throw new Error(error.message || "Failed to search");
+  }
+};
+
+//all
+export const FetchAllUsers = async () => {
+  try {
+    const response = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      [Query.orderDesc("$createdAt"), Query.limit(20)]
+    );
+
+    if (!response || response.documents.length === 0) {
+      throw new Error("No results found");
+    }
+    return { users: response.documents };
+  } catch (error: any) {
+    console.log(error);
+    throw new Error(error.message || "failed to fetch all users");
+  }
+};
+
+// users actions
+export const UnFollowUser = async ({
+  followerId,
+  followingId,
+}: {
+  followerId: string;
+  followingId: string;
+}) => {
+  try {
+    const response = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.followCollectionId,
+      [
+        Query.equal("followerId", followerId),
+        Query.equal("followingId", followingId),
+      ]
+    );
+    if (!response || response.documents.length === 0) return [];
+    const docId = response.documents[0].$id;
+
+    await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.followCollectionId,
+      docId
+    );
+    return true;
+  } catch (error: any) {
+    console.log(error);
+    throw new Error(error.message || "failed to follow");
+  }
+};
+export const FollowUser = async ({
+  followerId,
+  followingId,
+}: {
+  followerId: string;
+  followingId: string;
+}) => {
+  try {
+    const response = await databases.createDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.followCollectionId,
+      ID.unique(),
+      {
+        followerId: followerId,
+        followingId: followingId,
+        createdAt: new Date().toISOString(),
+      }
+    );
+    if (!response) throw new Error();
+    return response;
+  } catch (error: any) {
+    console.log(error);
+    throw new Error(error.message || "failed to follow");
+  }
+};
+
+export const getFollowingList = async (userId: string) => {
+  try {
+    const result = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.followCollectionId,
+      [Query.equal("followerId", userId)]
+    );
+    if (result.documents.length === 0) return [];
+
+    const list = result.documents.map((doc) => doc.followingId.$id);
+    return list;
+  } catch (error: any) {
+    console.log(error);
+    throw new Error(error.message || "failed to fetch followings");
+  }
+};
+
+export const UpdateUserProfile = async (user: IUpdateUser) => {
+  const hasFiletoUpdate = user.file.length > 0;
+  try {
+    let image = {
+      imageUrl: user.imageUrl,
+      imageId: user.imageId,
+    };
+    if (hasFiletoUpdate) {
+      const uploadFile = await UploadAvatar(user.file[0]);
+      if (!uploadFile) throw Error;
+      const fileUrl = getAvatarPreview(uploadFile.$id);
+      if (!fileUrl) {
+        deleteAvatar(uploadFile.$id);
+        throw Error;
+      }
+      image = { ...image, imageId: uploadFile.$id, imageUrl: fileUrl };
+    }
+    const response = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      user.userId,
+      {
+        username: user.name,
+        bio: user.bio,
+        imageId: image.imageId,
+        imageUrl: image.imageUrl,
+      }
+    );
+    return response;
+  } catch (error: any) {
+    console.log(error);
+    throw new Error(error.message || "failed to update user");
+  }
+};
+
+export const AllSavedPosts=async(userId:string)=>{
+try {
+   const posts = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.saveCollectionId,
+    [Query.equal('user',userId)]
+   )
+   if(!posts||posts.documents.length===0){
+     throw new Error('no result found')
+   }
+   return posts.documents;
+} catch (error:any) {
+  console.log(error)
+  throw new Error(error.message||'failed to fetch saved posts')
+}
+}

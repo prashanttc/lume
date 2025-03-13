@@ -1,25 +1,26 @@
 import BottomBar from "@/components/BottomBar";
+import RightSideBar from "@/components/RightSideBar";
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
 import { useUserContext } from "@/context/AuthContext";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
 const RootLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const hidesidebar = location.pathname.startsWith("/profile");
   const { isAuthenticated } = useUserContext();
-  console.log("auth",isAuthenticated)
-  if(!isAuthenticated){
-    navigate('/signIn');
-    console.log("done")
+  if (!isAuthenticated) {
+    navigate("/signIn");
   }
   return (
-    <div className="w-full md:flex relative">
+    <div className="w-full h-screen md:flex relative">
       <Topbar />
       <Sidebar />
       <section className="flex flex-1 h-full ">
         <Outlet />
       </section>
-      <BottomBar />
+      {!hidesidebar && <RightSideBar />} <BottomBar />
     </div>
   );
 };

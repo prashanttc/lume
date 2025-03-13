@@ -1,4 +1,4 @@
-import { INewPost, INewUser, IUpdatePost } from "@/types";
+import { INewPost, INewUser, IUpdatePost, IUpdateUser } from "@/types";
 import {
   useInfiniteQuery,
   useMutation,
@@ -6,20 +6,28 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import {
+  AllSavedPosts,
   CreatePost,
   createUserAccount,
   DeletePost,
   deleteSavedPost,
   EditPost,
+  FetchAllUsers,
   FetchInfinitePost,
+  FollowUser,
   getCurrentUser,
+  getFollowingList,
   getPostById,
   getRecentPost,
+  GetSearchPost,
+  GetSearchUser,
   getUserById,
   likedPost,
   savedPost,
   signInAccount,
   signOutAccount,
+  UnFollowUser,
+  UpdateUserProfile,
 } from "../appwrite/api";
 import { QUERY_KEYS } from "./queryKey";
 
@@ -48,7 +56,7 @@ export const useCreatePost = () => {
     mutationFn: (post: INewPost) => CreatePost(post),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
+        queryKey: [QUERY_KEYS.GET_RECENT_POSTS,QUERY_KEYS.GET_INFINITE_POSTS],
       });
     },
   });
@@ -75,7 +83,7 @@ export const useDeletePost = () => {
       DeletePost({ imageId, postId }),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
+        queryKey: [QUERY_KEYS.GET_RECENT_POSTS,QUERY_KEYS.GET_ALL_SAVED_POSTS,QUERY_KEYS.GET_INFINITE_POSTS],
       });
     },
   });
@@ -149,6 +157,9 @@ export const useSavePost = () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_CURRENT_USER],
       });
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_ALL_SAVED_POSTS],
+      });
     },
   });
 };
@@ -166,12 +177,26 @@ export const useDeleteSavedPost = () => {
         queryKey: [QUERY_KEYS.GET_POSTS],
       });
       queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_CURRENT_USER],
+        queryKey: [QUERY_KEYS.GET_ALL_SAVED_POSTS],
       });
     },
   });
 };
+export const useGetSearch = (searchText: string, type: "post" | "user") => {
+  const queryFn =
+    type === "post"
+      ? () => GetSearchPost(searchText)
+      : () => GetSearchUser(searchText);
 
+  return useQuery({
+    queryKey: [
+      type === "post" ? QUERY_KEYS.GET_SEARCH_POST : QUERY_KEYS.GET_SEARCH_USER,
+      searchText,
+    ],
+    queryFn,
+    enabled: !!searchText,
+  });
+};
 // users
 export const useGetCurrentUser = () => {
   return useQuery({
@@ -183,6 +208,75 @@ export const useGetUserById = (id: string) => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_USER_BY_ID],
     queryFn: () => getUserById(id),
-    enabled:!!id
+    enabled: !!id,
   });
 };
+
+export const useGetAllUser = () => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_CURRENT_USER],
+    queryFn: FetchAllUsers,
+  });
+};
+
+export const useGetFollowing = (userId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_ALL_FOLLOWING],
+    queryFn: () => getFollowingList(userId),
+  });
+};
+
+export const useFollowUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      followerId,
+      followingId,
+    }: {
+      followerId: string;
+      followingId: string;
+    }) => FollowUser({ followerId, followingId }),
+    onSuccess: (_, { followerId }) => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_ALL_FOLLOWING, followerId],
+      });
+    },
+  });
+};
+export const useUnFollowUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      followerId,
+      followingId,
+    }: {
+      followerId: string;
+      followingId: string;
+    }) => UnFollowUser({ followerId, followingId }),
+    onSuccess: (_, { followerId }) => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_ALL_FOLLOWING, followerId],
+      });
+    },
+  });
+};
+
+export const useUpdateUserProfile = ()=>{
+  const queryClient=useQueryClient();
+  return useMutation({
+    mutationFn:(data:IUpdateUser)=>UpdateUserProfile(data),
+    onSuccess:()=>{
+      queryClient.invalidateQueries({
+        queryKey:[QUERY_KEYS.GET_ALL_USER,QUERY_KEYS.GET_ALL_USER,QUERY_KEYS.GET_SEARCH_USER],
+      })
+    }
+  })
+}
+export const useGetSavedPosts = (userId:string)=>{
+  return useQuery({
+    queryKey:[QUERY_KEYS.GET_ALL_SAVED_POSTS],
+    queryFn:()=>AllSavedPosts(userId)
+  })
+}

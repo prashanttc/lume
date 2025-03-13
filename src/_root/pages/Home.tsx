@@ -12,7 +12,7 @@ const Home = () => {
           <h2 className="h2-bold md:h3-bold w-full text-left">Feed</h2>
           {isPostLoading && !posts ? <Loader /> : <ul className="flex flex-col flex-1 gap-9 w-full">
             {posts?.documents.map((post:Models.Document)=>(
-              <PostCard post={post}/>
+              <PostCard post={post} key={post.$id}/>
             ))}</ul>}
         </div>
       </div>

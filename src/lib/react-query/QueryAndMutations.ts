@@ -16,6 +16,7 @@ import {
   FetchInfinitePost,
   FollowUser,
   getCurrentUser,
+  getFollowerList,
   getFollowingList,
   getPostById,
   getRecentPost,
@@ -23,6 +24,7 @@ import {
   GetSearchUser,
   getUserById,
   likedPost,
+  removeFollower,
   savedPost,
   signInAccount,
   signOutAccount,
@@ -31,33 +33,41 @@ import {
 } from "../appwrite/api";
 import { QUERY_KEYS } from "./queryKey";
 
-// sign and sign out
+// Sign up & Sign in/Sign out
 export const useCreateUserAccount = () => {
   return useMutation({
     mutationFn: (user: INewUser) => createUserAccount(user),
   });
 };
+
 export const useSignInAccount = () => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (user: { email: string; password: string }) =>
-      signInAccount(user),
-  });
-};
-export const useSignOutAccount = () => {
-  return useMutation({
-    mutationFn: () => signOutAccount(),
+    mutationFn: (user: { email: string; password: string }) => signInAccount(user),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_CURRENT_USER] });
+    },
   });
 };
 
-//  for posts
+export const useSignOutAccount = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => signOutAccount(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_CURRENT_USER] });
+    },
+  });
+};
+
+// Posts
 export const useCreatePost = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (post: INewPost) => CreatePost(post),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_RECENT_POSTS,QUERY_KEYS.GET_INFINITE_POSTS],
-      });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_RECENT_POSTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_INFINITE_POSTS] });
     },
   });
 };
@@ -76,26 +86,26 @@ export const useGetRecentPost = () => {
     queryFn: getRecentPost,
   });
 };
+
 export const useDeletePost = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ imageId, postId }: { imageId: string; postId: string }) =>
       DeletePost({ imageId, postId }),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_RECENT_POSTS,QUERY_KEYS.GET_ALL_SAVED_POSTS,QUERY_KEYS.GET_INFINITE_POSTS],
-      });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_RECENT_POSTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ALL_SAVED_POSTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_INFINITE_POSTS] });
     },
   });
 };
+
 export const useUpdatePost = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (post: IUpdatePost) => EditPost(post),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?.$id],
-      });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?.$id] });
     },
   });
 };
@@ -112,10 +122,10 @@ export const useGetInfinitePost = () => {
     },
   });
 };
-// post actions
+
+// Post Actions
 export const useLikePost = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: ({
       postId,
@@ -125,69 +135,44 @@ export const useLikePost = () => {
       likedArray: string[];
     }) => likedPost(postId, likedArray),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?.$id],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_POSTS],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_CURRENT_USER],
-      });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_POST_BY_ID, data?.$id] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_RECENT_POSTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_POSTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_CURRENT_USER] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_USER_BY_ID] });
     },
   });
 };
 
 export const useSavePost = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: ({ postId, userId }: { postId: string; userId: string }) =>
       savedPost(postId, userId),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_POSTS],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_CURRENT_USER],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_ALL_SAVED_POSTS],
-      });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_RECENT_POSTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_POSTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_CURRENT_USER] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ALL_SAVED_POSTS] });
     },
   });
 };
 
 export const useDeleteSavedPost = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: (savedRecordId: string) => deleteSavedPost(savedRecordId),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_POSTS],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_ALL_SAVED_POSTS],
-      });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_RECENT_POSTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_POSTS] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ALL_SAVED_POSTS] });
     },
   });
 };
+
 export const useGetSearch = (searchText: string, type: "post" | "user") => {
   const queryFn =
-    type === "post"
-      ? () => GetSearchPost(searchText)
-      : () => GetSearchUser(searchText);
-
+    type === "post" ? () => GetSearchPost(searchText) : () => GetSearchUser(searchText);
   return useQuery({
     queryKey: [
       type === "post" ? QUERY_KEYS.GET_SEARCH_POST : QUERY_KEYS.GET_SEARCH_USER,
@@ -197,16 +182,18 @@ export const useGetSearch = (searchText: string, type: "post" | "user") => {
     enabled: !!searchText,
   });
 };
-// users
+
+// Users
 export const useGetCurrentUser = () => {
   return useQuery({
     queryKey: [QUERY_KEYS.GET_CURRENT_USER],
     queryFn: getCurrentUser,
   });
 };
+
 export const useGetUserById = (id: string) => {
   return useQuery({
-    queryKey: [QUERY_KEYS.GET_USER_BY_ID],
+    queryKey: [QUERY_KEYS.GET_USER_BY_ID, id],
     queryFn: () => getUserById(id),
     enabled: !!id,
   });
@@ -214,69 +201,72 @@ export const useGetUserById = (id: string) => {
 
 export const useGetAllUser = () => {
   return useQuery({
-    queryKey: [QUERY_KEYS.GET_CURRENT_USER],
+    queryKey: [QUERY_KEYS.GET_ALL_USER],
     queryFn: FetchAllUsers,
   });
 };
 
 export const useGetFollowing = (userId: string) => {
   return useQuery({
-    queryKey: [QUERY_KEYS.GET_ALL_FOLLOWING],
+    queryKey: [QUERY_KEYS.GET_ALL_FOLLOWING, userId],
     queryFn: () => getFollowingList(userId),
+  });
+};
+export const useGetFollower = (userId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_ALL_FOLLOWER, userId],
+    queryFn: () => getFollowerList(userId),
   });
 };
 
 export const useFollowUser = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: ({
-      followerId,
-      followingId,
-    }: {
-      followerId: string;
-      followingId: string;
-    }) => FollowUser({ followerId, followingId }),
+    mutationFn: ({ followerId, followingId }: { followerId: string; followingId: string }) =>
+      FollowUser({ followerId, followingId }),
     onSuccess: (_, { followerId }) => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_ALL_FOLLOWING, followerId],
-      });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ALL_FOLLOWING, followerId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ALL_FOLLOWER] });
     },
   });
 };
+
 export const useUnFollowUser = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: ({
-      followerId,
-      followingId,
-    }: {
-      followerId: string;
-      followingId: string;
-    }) => UnFollowUser({ followerId, followingId }),
+    mutationFn: ({ followerId, followingId }: { followerId: string; followingId: string }) =>
+      UnFollowUser({ followerId, followingId }),
     onSuccess: (_, { followerId }) => {
-      queryClient.invalidateQueries({
-        queryKey: [QUERY_KEYS.GET_ALL_FOLLOWING, followerId],
-      });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ALL_FOLLOWING, followerId] });
+    },
+  });
+};
+export const useRemoveFollower = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ followerId, followingId }: { followerId: string; followingId: string }) =>
+      removeFollower({ followerId, followingId }),
+    onSuccess: (_, { followerId,followingId }) => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ALL_FOLLOWER, followerId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ALL_FOLLOWING, followingId] });
     },
   });
 };
 
-export const useUpdateUserProfile = ()=>{
-  const queryClient=useQueryClient();
+export const useUpdateUserProfile = () => {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn:(data:IUpdateUser)=>UpdateUserProfile(data),
-    onSuccess:()=>{
-      queryClient.invalidateQueries({
-        queryKey:[QUERY_KEYS.GET_ALL_USER,QUERY_KEYS.GET_ALL_USER,QUERY_KEYS.GET_SEARCH_USER],
-      })
-    }
-  })
-}
-export const useGetSavedPosts = (userId:string)=>{
+    mutationFn: (data: IUpdateUser) => UpdateUserProfile(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ALL_USER] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_SEARCH_USER] });
+    },
+  });
+};
+
+export const useGetSavedPosts = (userId: string) => {
   return useQuery({
-    queryKey:[QUERY_KEYS.GET_ALL_SAVED_POSTS],
-    queryFn:()=>AllSavedPosts(userId)
-  })
-}
+    queryKey: [QUERY_KEYS.GET_ALL_SAVED_POSTS, userId],
+    queryFn: () => AllSavedPosts(userId),
+  });
+};

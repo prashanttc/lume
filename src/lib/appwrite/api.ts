@@ -514,7 +514,36 @@ export const FollowUser = async ({
     throw new Error(error.message || "failed to follow");
   }
 };
-
+export const removeFollower = async ({
+  followerId,
+  followingId,
+}: {
+  followerId: string;
+  followingId: string;
+}) => {
+  try {
+    const response = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.followCollectionId,
+      [
+        Query.equal("followerId", followerId),
+        Query.equal("followingId", followingId),
+      ]
+    );
+    if (!response || response.documents.length === 0) return [];
+    const docId = response.documents[0].$id;
+     console.log("docid",docId)
+    await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.followCollectionId,
+      docId
+    );
+    return true;
+  } catch (error: any) {
+    console.log(error);
+    throw new Error(error.message || "error removing follower");
+  }
+};
 export const getFollowingList = async (userId: string) => {
   try {
     const result = await databases.listDocuments(
@@ -524,11 +553,27 @@ export const getFollowingList = async (userId: string) => {
     );
     if (result.documents.length === 0) return [];
 
-    const list = result.documents.map((doc) => doc.followingId.$id);
+    const list = result.documents;
     return list;
   } catch (error: any) {
     console.log(error);
     throw new Error(error.message || "failed to fetch followings");
+  }
+};
+export const getFollowerList = async (userId: string) => {
+  try {
+    const result = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.followCollectionId,
+      [Query.equal("followingId", userId)]
+    );
+    if (result.documents.length === 0) return [];
+
+    const list = result.documents;
+    return list;
+  } catch (error: any) {
+    console.log(error);
+    throw new Error(error.message || "failed to fetch followers");
   }
 };
 
@@ -567,19 +612,19 @@ export const UpdateUserProfile = async (user: IUpdateUser) => {
   }
 };
 
-export const AllSavedPosts=async(userId:string)=>{
-try {
-   const posts = await databases.listDocuments(
-    appwriteConfig.databaseId,
-    appwriteConfig.saveCollectionId,
-    [Query.equal('user',userId)]
-   )
-   if(!posts||posts.documents.length===0){
-     throw new Error('no result found')
-   }
-   return posts.documents;
-} catch (error:any) {
-  console.log(error)
-  throw new Error(error.message||'failed to fetch saved posts')
-}
-}
+export const AllSavedPosts = async (userId: string) => {
+  try {
+    const posts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.saveCollectionId,
+      [Query.equal("user", userId)]
+    );
+    if (!posts || posts.documents.length === 0) {
+      throw new Error("no result found");
+    }
+    return posts.documents;
+  } catch (error: any) {
+    console.log(error);
+    throw new Error(error.message || "failed to fetch saved posts");
+  }
+};

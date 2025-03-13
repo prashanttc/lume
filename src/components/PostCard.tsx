@@ -12,14 +12,13 @@ const PostCard = ({ post }: PostProps) => {
   return (
     <div className="post-card">
       <div className="flex-between">
-        <div className="flex items-center gap-3">
-          <Link to={`/profile/${post?.creator?.imageUrl}`}>
+        <Link to={`/profile/${post?.creator?.$id}`} className="flex items-center gap-3">
             <img
               src={post?.creator?.imageUrl || "/assets/images/profile.png"}
               alt="creator"
               className="w-12 lg:-12 rounded-full"
             />
-          </Link>
+
           <div className="flex flex-col">
             <p className="base-medium lg:body-bold text-light-1">
               {post?.creator?.username}
@@ -34,7 +33,7 @@ const PostCard = ({ post }: PostProps) => {
               </p>
             </div>
           </div>
-        </div>
+        </Link>
        {post.creator.$id === user.id && 
         <Link to={`/update-post/${post.$id}`}>
           <img src="/assets/icons/edit.svg" alt="edit" width={20} height={20} />

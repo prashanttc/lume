@@ -17,17 +17,16 @@
     const { mutate: unfollowUser, isPending: isUnFollowing} = useUnFollowUser();
     const { data:followinglist, isPending } = useGetFollowing(currentUser.id);
     const [followStatus, setFollowStatus] = useState<string[]>([]);
-
+     const followingId = followinglist?.map((followings)=>followings.followingId)
     useEffect(() => {
       if (followinglist) {
-        setFollowStatus(followinglist);
+        setFollowStatus(followingId||[]);
       }
     }, [followinglist]);
 
 
     const handleFollow = (followingId: string) => {
       const followerId = currentUser.id;
-      // Check if the target user's id is already in the followStatus list.
       const isFollowed = followStatus.includes(followingId);
   
       if (isFollowed) {

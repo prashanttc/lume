@@ -10,4 +10,5 @@ export enum QUERY_KEYS {
     GET_ALL_USER ='getAllUser',
     GET_ALL_SAVED_POSTS="getAllSavedPosts",
     GET_ALL_FOLLOWING ='getAllFollowing',
+    GET_ALL_FOLLOWER ='getAllFollower',
 }

@@ -1,17 +1,20 @@
-import  { useState } from "react";
+import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import GridPostList from "@/components/GridPostList";
 import { Button } from "@/components/ui/button";
 import Loader from "@/components/ui/Loader";
 import { Separator } from "@/components/ui/separator";
 import {
+  useFollowUser,
   useGetCurrentUser,
   useGetFollower,
   useGetFollowing,
   useGetUserById,
+  useUnFollowUser,
 } from "@/lib/react-query/QueryAndMutations";
 import FollowingAlertDialog from "@/components/FollowingAlertDialog";
 import FollowerAlertDialog from "@/components/FollowerAlertDialog";
+import { toast } from "sonner";
 
 const Profile = () => {
   const params = useParams();
@@ -21,11 +24,48 @@ const Profile = () => {
   const { data, isPending } = useGetUserById(profileId || "");
   const { data: currentUser, isPending: gettingUser } = useGetCurrentUser();
   const { data: followings } = useGetFollowing(profileId || "");
-  const { data: currentUserfollowing} = useGetFollowing(currentUser?.$id || "");
-
+  const { data: currentUserfollowing } = useGetFollowing(
+    currentUser?.$id || ""
+  );
+  const { mutate: followUser, isPending: isfollowing } = useFollowUser();
+  const { mutate: unfollowUser, isPending: isunfollowing } = useUnFollowUser();
   const { data: followers } = useGetFollower(profileId || "");
   const IscurrentUser = currentUser?.$id === profileId;
+  const followingIdforCU = currentUserfollowing?.map(
+    (following) => following.followingId.$id
+  );
 
+  const handleFollow = (userId: string) => {
+    const isFollowed = followingIdforCU?.includes(userId);
+    const followerId = currentUser?.$id || "";
+    if (isFollowed) {
+      // If already followed, unfollow
+      unfollowUser(
+        { followerId, followingId: userId },
+        {
+          onSuccess: () => {
+            toast.success("Unfollowed successfully!");
+          },
+          onError: () => {
+            toast.error("An error occurred while unfollowing the user.");
+          },
+        }
+      );
+    } else {
+      // If not followed, follow
+      followUser(
+        { followerId, followingId: userId },
+        {
+          onSuccess: () => {
+            toast.success("Followed successfully!");
+          },
+          onError: () => {
+            toast.error("An error occurred while following the user.");
+          },
+        }
+      );
+    }
+  };
   return (
     <div className="w-full h-full p-5 xl:px-32">
       {isPending || gettingUser ? (
@@ -47,9 +87,27 @@ const Profile = () => {
                 <p className="text-white md:text-2xl text-xl ml-5 md:ml-0 font-medium">
                   {data?.username}
                 </p>
-                {IscurrentUser && (
+                {IscurrentUser ? (
                   <Button className="bg-primary-500 ml-2 hidden xl:block">
-                    <Link to={`/update-profile/${profileId}`}>edit profile</Link>
+                    <Link to={`/update-profile/${profileId}`}>
+                      edit profile
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button
+                    className="bg-primary-500 ml-2 hidden xl:block"
+                    disabled={isfollowing || isunfollowing}
+                    onClick={() => handleFollow(profileId!)}
+                  >
+                    {followingIdforCU?.includes(profileId) ? (
+                      isfollowing || isunfollowing ? (
+                        <Loader />
+                      ) : (
+                        "unfollow"
+                      )
+                    ) : (
+                      "follow"
+                    )}
                   </Button>
                 )}
               </div>
@@ -78,10 +136,11 @@ const Profile = () => {
                   {data?.name}
                 </p>
                 <p className="text-sm md:text-md text-light-2">{data?.bio}</p>
+              { followers && followers.length > 1 && 
                 <p className="mt-7 text-sm">
-                  followed by <span className="font-semibold">prasahnt</span>{" "}
-                  and <span className="font-semibold">69 others</span>
-                </p>
+                  followed by <span className="font-semibold">{followers[0].followerId.username}</span>{" "}
+                  and <span className="font-semibold">{followers!.length-1}</span> others
+                </p>}
               </div>
             </div>
           </div>
@@ -99,7 +158,24 @@ const Profile = () => {
                 </Button>
               )}
               <Button className="bg-primary-500 w-[50%]">share profile</Button>
-            </div>
+              <Button
+                       className={`${
+                        !followingIdforCU?.includes(profileId)
+                          ? "bg-primary-500 text-white"
+                          : "bg-white text-black"} w-[50%]`} 
+                    disabled={isfollowing || isunfollowing}
+                    onClick={() => handleFollow(profileId!)}
+                  >
+                    {followingIdforCU?.includes(profileId) ? (
+                      isfollowing || isunfollowing ? (
+                        <Loader />
+                      ) : (
+                        "unfollow"
+                      )
+                    ) : (
+                      "follow"
+                    )}
+                  </Button>            </div>
           </div>
           <Separator className="bg-white/40" />
           <div className="w-full mt-5">
@@ -118,12 +194,12 @@ const Profile = () => {
         open={open}
         currentUserId={currentUser?.$id || ""}
         onOpenChange={setOpen}
-        currentUserFollowing={currentUserfollowing||[]}
+        currentUserFollowing={currentUserfollowing || []}
         followings={followings || []}
       />
       <FollowerAlertDialog
         open={openFollwer}
-        profileId={profileId||''}
+        profileId={profileId || ""}
         currentUserId={currentUser?.$id || ""}
         onOpenChange={setOpenFollower}
         followers={followers || []}

@@ -236,8 +236,9 @@ export const useUnFollowUser = () => {
   return useMutation({
     mutationFn: ({ followerId, followingId }: { followerId: string; followingId: string }) =>
       UnFollowUser({ followerId, followingId }),
-    onSuccess: (_, { followerId }) => {
+    onSuccess: (_, { followerId ,followingId }) => {
       queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ALL_FOLLOWING, followerId] });
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.GET_ALL_FOLLOWER, followingId] });
     },
   });
 };

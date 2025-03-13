@@ -13,8 +13,8 @@
 
   const UserCard = ({ users }: UsersProps) => {
     const { user: currentUser } = useUserContext();
-    const { mutate: followUser, isPending: isFollowing } = useFollowUser();
-    const { mutate: unfollowUser, isPending: isUnFollowing} = useUnFollowUser();
+    const { mutate: followUser, isPending: isFollowing,error:followError } = useFollowUser();
+    const { mutate: unfollowUser, isPending: isUnFollowing,error} = useUnFollowUser();
     const { data:followinglist, isPending } = useGetFollowing(currentUser.id);
     const [followStatus, setFollowStatus] = useState<string[]>([]);
      const followingId = followinglist?.map((followings)=>followings.followingId)
@@ -24,7 +24,7 @@
       }
     }, [followinglist]);
 
-
+    
     const handleFollow = (followingId: string) => {
       const followerId = currentUser.id;
       const isFollowed = followStatus.includes(followingId);
@@ -40,7 +40,7 @@
               setFollowStatus((prev) => prev.filter((id) => id !== followingId));
             },
             onError: () => {
-              toast.error("An error occurred while unfollowing the user.");
+              toast.error(error?.message);
             },
           }
         );
@@ -54,7 +54,7 @@
               setFollowStatus((prev) => [...prev, followingId]);
             },
             onError: () => {
-              toast.error("An error occurred while following the user.");
+              toast.error(followError?.message);
             },
           }
         );

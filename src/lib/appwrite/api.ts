@@ -135,19 +135,7 @@ export const signOutAccount = async () => {
     console.log(error);
   }
 };
-export const getUserById = async (id: string) => {
-  try {
-    const user = await databases.getDocument(
-      appwriteConfig.databaseId,
-      appwriteConfig.userCollectionId,
-      id
-    );
-    if (!user) throw Error;
-    return user;
-  } catch (error) {
-    console.log(error);
-  }
-};
+
 
 // post
 export const CreatePost = async (post: INewPost) => {
@@ -439,7 +427,8 @@ export const GetSearchUser = async (searchText: string) => {
   }
 };
 
-//all
+// users actions
+
 export const FetchAllUsers = async () => {
   try {
     const response = await databases.listDocuments(
@@ -457,8 +446,19 @@ export const FetchAllUsers = async () => {
     throw new Error(error.message || "failed to fetch all users");
   }
 };
-
-// users actions
+export const getUserById = async (id: string) => {
+  try {
+    const user = await databases.getDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.userCollectionId,
+      id
+    );
+    if (!user) throw Error;
+    return user;
+  } catch (error) {
+    console.log(error);
+  }
+};
 export const UnFollowUser = async ({
   followerId,
   followingId,
@@ -497,6 +497,21 @@ export const FollowUser = async ({
   followingId: string;
 }) => {
   try {
+    const isSameUser = followerId===followingId;
+    if(isSameUser){
+      throw new Error('cannot follow same account')
+    }
+    const alreadyFollowed = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.followCollectionId,
+      [
+        Query.equal("followerId", followerId),
+        Query.equal("followingId", followingId),
+      ]
+    )
+    if(alreadyFollowed.documents.length>0){
+      throw new Error('already followed')
+    }
     const response = await databases.createDocument(
       appwriteConfig.databaseId,
       appwriteConfig.followCollectionId,

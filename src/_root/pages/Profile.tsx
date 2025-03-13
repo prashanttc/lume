@@ -136,47 +136,64 @@ const Profile = () => {
                   {data?.name}
                 </p>
                 <p className="text-sm md:text-md text-light-2">{data?.bio}</p>
-              { followers && followers.length > 1 && 
-                <p className="mt-7 text-sm">
-                  followed by <span className="font-semibold">{followers[0].followerId.username}</span>{" "}
-                  and <span className="font-semibold">{followers!.length-1}</span> others
-                </p>}
+                {followers && followers.length > 1 && (
+                  <p className="mt-7 text-sm">
+                    followed by{" "}
+                    <span className="font-semibold">
+                      {followers[0].followerId.username}
+                    </span>{" "}
+                    and{" "}
+                    <span className="font-semibold">
+                      {followers!.length - 1}
+                    </span>{" "}
+                    others
+                  </p>
+                )}
               </div>
             </div>
           </div>
           <div className="w-full pt-1 flex flex-col gap-4 mb-5 xl:hidden">
             <p className="text-sm font-semibold">{data?.name}</p>
             <p className="text-sm">{data?.bio}</p>
-            { followers && followers.length > 1 && 
-                <p className="mt-7 xl:hidden text-sm">
-                  followed by <span className="font-semibold">{followers[0].followerId.username}</span>{" "}
-                  and <span className="font-semibold">{followers!.length-1}</span> others
-                </p>}
+            {followers && followers.length > 1 && (
+              <p className="mt-7 xl:hidden text-sm">
+                followed by{" "}
+                <span className="font-semibold">
+                  {followers[0].followerId.username}
+                </span>{" "}
+                and{" "}
+                <span className="font-semibold">{followers!.length - 1}</span>{" "}
+                others
+              </p>
+            )}
             <div className="flex gap-5">
-              {IscurrentUser && (
+              {IscurrentUser ? (
                 <Button className="bg-primary-500 w-[50%]">
                   <Link to={`/update-profile/${profileId}`}>edit profile</Link>
                 </Button>
+              ) : (
+                <Button
+                  className={`${
+                    !followingIdforCU?.includes(profileId)
+                      ? "bg-primary-500 text-white"
+                      : "bg-white text-black"
+                  } w-[50%]`}
+                  disabled={isfollowing || isunfollowing}
+                  onClick={() => handleFollow(profileId!)}
+                >
+                  {followingIdforCU?.includes(profileId) ? (
+                    isfollowing || isunfollowing ? (
+                      <Loader />
+                    ) : (
+                      "unfollow"
+                    )
+                  ) : (
+                    "follow"
+                  )}
+                </Button>
               )}
               <Button className="bg-primary-500 w-[50%]">share profile</Button>
-              <Button
-                       className={`${
-                        !followingIdforCU?.includes(profileId)
-                          ? "bg-primary-500 text-white"
-                          : "bg-white text-black"} w-[50%]`} 
-                    disabled={isfollowing || isunfollowing}
-                    onClick={() => handleFollow(profileId!)}
-                  >
-                    {followingIdforCU?.includes(profileId) ? (
-                      isfollowing || isunfollowing ? (
-                        <Loader />
-                      ) : (
-                        "unfollow"
-                      )
-                    ) : (
-                      "follow"
-                    )}
-                  </Button>            </div>
+            </div>
           </div>
           <Separator className="bg-white/40" />
           <div className="w-full mt-5">

@@ -147,10 +147,11 @@ const Profile = () => {
           <div className="w-full pt-1 flex flex-col gap-4 mb-5 xl:hidden">
             <p className="text-sm font-semibold">{data?.name}</p>
             <p className="text-sm">{data?.bio}</p>
-            <p className="xl:hidden text-sm">
-              followed by <span className="font-semibold"></span> and{" "}
-              <span className="font-semibold">69 others</span>
-            </p>
+            { followers && followers.length > 1 && 
+                <p className="mt-7 xl:hidden text-sm">
+                  followed by <span className="font-semibold">{followers[0].followerId.username}</span>{" "}
+                  and <span className="font-semibold">{followers!.length-1}</span> others
+                </p>}
             <div className="flex gap-5">
               {IscurrentUser && (
                 <Button className="bg-primary-500 w-[50%]">

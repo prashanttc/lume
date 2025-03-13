@@ -16,16 +16,14 @@ const Sidebar = () => {
   return (
     <nav className="leftsidebar">
       <div className="flex flex-col gap-5">
-        <Link to="/" className="flex gap-3 items-center mb-10">
+        <Link to="/" className="flex gap-3 w-full h-20 items-center mb-10">
           <img
             src="/assets/images/logo.svg"
-            width={170}
-            height={35}
-            alt="logo"
+            alt="logo" className="object-cover w-full h-32"
           />
         </Link>
 
-        <ul className="flex flex-col gap-6">
+        <ul className="flex flex-col gap-6 -mt-8">
           {sidebarLinks.map((Links: INavLink) => {
             const isActive = pathname === Links.route;
             return (

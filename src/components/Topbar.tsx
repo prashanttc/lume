@@ -14,12 +14,11 @@ const Topbar = () => {
   }, [isSuccess]);
   return (
     <section className="topbar">
-      <div className="flex-between py-4 px-5">
-        <Link to="/" className="flex gap-3 items-center">
+      <div className="flex-between py-4 pr-5">
+        <Link to="/" className="w-32 h-10 flex items-center justify-start">
           <img
             src="/assets/images/logo.svg"
-            width={130}
-            height={325}
+            className=""
             alt="logo"
           />
         </Link>

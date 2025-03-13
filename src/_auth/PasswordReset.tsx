@@ -15,7 +15,7 @@ const PasswordReset = () => {
   }
   const handlepasswordreset = async () => {
     const response = await updatePassword({ userId, secret, password });
-    if (!response.success) {
+    if (response.success) {
       navigate("/signIn");
     }
   };
@@ -28,7 +28,7 @@ const PasswordReset = () => {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
       />
-      <Button className="bg-fuchsia-700" onClick={handlepasswordreset}>
+      <Button className="bg-primary-500" onClick={handlepasswordreset}>
         Submit
       </Button>
     </div>

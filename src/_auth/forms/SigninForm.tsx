@@ -24,7 +24,6 @@ import {
   AlertDialogContent,
   AlertDialogTrigger,
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
@@ -129,9 +128,9 @@ const SigninForm = () => {
             />
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
+              <Button className="bg-primary-500"
                 onClick={() => sendPasswordReset(passwordEmail)}
-              ></AlertDialogAction>
+              >Submit</Button>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

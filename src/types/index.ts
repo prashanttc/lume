@@ -34,7 +34,7 @@ export type INavLink = {
   };
   
   export type IUser = {
-    imageId: string | undefined;
+    imageId?: string | undefined;
     id: string;
     name: string;
     username: string;
@@ -47,7 +47,6 @@ export type INavLink = {
     name: string;
     email: string;
     username: string;
-    imageId?:string;
     password: string;
   };
 

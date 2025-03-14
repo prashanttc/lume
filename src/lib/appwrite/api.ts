@@ -2,18 +2,22 @@
 import { INewPost, INewUser, IUpdatePost, IUpdateUser } from "@/types";
 import { account, appwriteConfig, avatars, databases, storage } from "./config";
 import { ID, Query } from "appwrite";
+import { deleteAccountServerSide } from "./AdminApi";
 
 //  user
 export async function createUserAccount(user: INewUser) {
+  let newAccount;
   try {
-    const newAccount = await account.create(
+    newAccount = await account.create(
       ID.unique(),
       user.email,
       user.password,
       user.name
     );
-    if (!newAccount) throw Error;
+    if (!newAccount) throw new Error("Account creation failed.");
+
     const avatarUrl = avatars.getInitials(user.name);
+
     const newUser = await saveUserToDB({
       accountId: newAccount.$id,
       name: newAccount.name,
@@ -21,15 +25,34 @@ export async function createUserAccount(user: INewUser) {
       username: user.username,
       imageUrl: avatarUrl,
     });
+
     return { success: true, data: newUser };
   } catch (error: any) {
     console.error("Error creating user:", error);
+
+    // If the error is due to duplicate document, call a server-side endpoint to delete the account.
+    if (
+      newAccount &&
+      error.message &&
+      error.message.includes("Document with the requested ID already exists")
+    ) {
+      try {
+        // Assume deleteAccountServerSide is an endpoint you control that deletes the account with admin privileges
+        await deleteAccountServerSide(newAccount.$id);
+        console.log("Deleted account via server-side function due to duplicate document error.");
+      } catch (deleteError) {
+        console.error("Failed to delete account via server-side function:", deleteError);
+      }
+    }
+
     return {
       success: false,
       message: error.message || "Failed to create user account",
     };
   }
 }
+
+
 export const saveUserToDB = async (user: {
   accountId: string;
   email: string;
@@ -45,10 +68,12 @@ export const saveUserToDB = async (user: {
       user
     );
     return newUser;
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
+    console.error("Error saving user to DB:", error);
+    throw new Error(error.message || "Error creating user");
   }
 };
+
 export const signInAccount = async (user: {
   email: string;
   password: string;

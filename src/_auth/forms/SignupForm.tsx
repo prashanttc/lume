@@ -42,10 +42,6 @@ const SignupForm = () => {
     const response = await createUserAccount(values);
     if (!response.success) {
       toast.error(response.message);
-      form.setError("email", {
-        type: "manual",
-        message: response.message,
-      });
       return;
     }
     const session = await signInAccount({

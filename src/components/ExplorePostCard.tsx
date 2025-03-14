@@ -12,7 +12,7 @@ type PostProps = {
 const ExplorePostCard = ({ post }: PostProps) => {
   const { user } = useUserContext();
   return (
-    <div className="flex flex-col md:flex-row xl:w-[70%] ">
+    <div className="flex flex-col md:flex-row xl:w-[70%] bg-black border-2 border-white/10 rounded-xl">
       <div className="w-full md:hidden">
         <div className="w-full p-3 items-center flex justify-between">
           <div className="flex gap-5 justify-center items-center">
@@ -94,7 +94,7 @@ const ExplorePostCard = ({ post }: PostProps) => {
           <PostStat post={post} userId={user.id} />
            <div className="w-full md:hidden h-[70%] flex">
           <div className="flex gap-5">
-            <div className="flex gap-5 justify-center h-fit items-center">
+            <div className="flex gap-2 justify-center h-fit mt-2 flex-col">
               <p className="font-semibold text-[15px]">
                 {post.creator.username}
               </p>

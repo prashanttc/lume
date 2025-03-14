@@ -112,7 +112,7 @@ const PostStat = ({ post, userId }: PostStatProps) => {
       </div>
 
       {/* First user who liked the post */}
-      <div className="flex gap-1 items-center">
+      <div className="flex gap-1 items-center  w-full">
         {firstUser && firstUserId && (
           <>
             <img
@@ -120,13 +120,13 @@ const PostStat = ({ post, userId }: PostStatProps) => {
               alt="profile"
               className="rounded-full h-5 w-5"
             />
-            <p className="text-sm mt-1">
+            <p className="text-sm ">
               Liked by{" "}
-              <span className="ml-2 text-sm font-semibold">{firstUser.name}</span>
+              <span className="ml-2 text-xs md:text-sm font-semibold">{firstUser.name}</span>
             </p>
             {likes.length > 1 && (
-              <p className="text-sm mt-1">
-                and <span className="text-sm font-semibold">others</span>
+              <p className="text-sm ">
+                and <span className="text-sm">others</span>
               </p>
             )}
           </>

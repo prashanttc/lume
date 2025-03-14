@@ -59,21 +59,21 @@ const UserCard = ({ users }: UsersProps) => {
 
   return (
     <div className="w-full">
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-5 xl:gap-20">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-5 xl:gap-20 w-full">
         {users.map((user) => (
           <div
             key={user.$id}
-            className="cursor-pointer bg-white/10 rounded-3xl py-10 flex flex-col items-center justify-center"
+            className="cursor-pointer bg-white/10 px-5 rounded-3xl py-10 flex w-full flex-col items-center justify-center"
           >
-            <Link to={`/profile/${user.$id}`}>
-              <div className="flex flex-col justify-center items-center gap-5">
+            <Link to={`/profile/${user.$id}`} className="w-full">
+              <div className="flex flex-col justify-center items-center gap-5 w-full">
                 <img
                   src={user.imageUrl}
                   alt="user"
                   className="md:w-20 md:h-20 w-10 h-10 rounded-full object-cover"
                 />
-                <div className="flex flex-col justify-center items-center gap-3">
-                  <p className="text-md md:text-xl text-white">{user.username}</p>
+                <div className="flex flex-col  items-center gap-3 w-full justify-center  flex-wrap text-wrap overflow-hidden">
+                  <p className="text-md md:text-xl text-white text-center">{user.username}</p>
                   <p className="text-light-3 text-sm">{user.name}</p>
                 </div>
               </div>

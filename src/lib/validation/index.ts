@@ -12,7 +12,7 @@ export const Signupvalidation = z.object({
 name: z
   .string()
   .min(1, { message: "Name cannot be empty" })
-  .max(50, { message: "Name cannot exceed 50 characters" })
+  .max(20, { message: "Name cannot exceed 50 characters" })
   .trim()
   .refine((value) => value.replace(/\s/g, "").length > 0, {
     message: "Name cannot be only spaces",

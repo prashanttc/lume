@@ -9,6 +9,7 @@ type PostProps = {
 };
 const PostCard = ({ post }: PostProps) => {
   const{user} =useUserContext();
+  console.log("post",post)
   return (
     <div className="post-card">
       <div className="flex-between">

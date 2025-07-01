@@ -315,13 +315,9 @@ export const getFilePreview = (fileId: string) => {
 };
 export const getAvatarPreview = (fileId: string) => {
   try {
-    const fileUrl = storage.getFilePreview(
+    const fileUrl = storage.getFileView(
       appwriteConfig.avatarStorageId,
       fileId,
-      2000,
-      2000,
-      undefined,
-      100
     );
     return fileUrl;
   } catch (error) {
